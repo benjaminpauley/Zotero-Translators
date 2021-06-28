@@ -2,11 +2,11 @@
 ### English Short Title Catalogue
 Out of the box, <a href="http://zotero.org">Zotero</a> will ingest records from the English Short Title Catalogue quite happily, using the translator for Aleph library catalogues in conjunction with the MARC translator. The default behavior isn't especially well-suited for working with ESTC records, however. These translators make a few tweaks to improve things.
 
-There are *two* javascript files here, which both need to be added to Zotero's collection of translators. `English Short Title Catalogue.js` notes when you're at the ESTC and directs Zotero to use the second file, `MARC-2.js` in place of the standard `MARC.js` translator. `MARC-2 .js`is just a slightly altered version of the standard `MARC.js` translator that:
+There are *two* javascript files here, which both need to be added to Zotero's collection of translators to work properly at the ESTC's public catalogue at the British Library. `English Short Title Catalogue.js` notes when you're at the ESTC and directs Zotero to use the second file, `MARC-2.js` in place of the standard `MARC.js` translator. `MARC-2 .js`is just a slightly altered version of the standard `MARC.js` translator that:
 * Grabs the ESTC citation number and places it in the "Extra" field.
 * Grabs the entire, messy pagination statement (rather than just the first thing that looks like a number).
 * Inclues citation notes (the MARC 510 field) in Zotero notes
-* Separates multiple notes with a pipe character (`' | '`) for easier parsing later.
+* Separates multiple notes with a pipe character (`' | '`) for easier parsing later. 
 
 ### American Antiquarian Society
 Behaves like the English Short Title Catalogue translator, in that it requires the installtion of `NARC-2.js` as well as the site translator. When both are installed, as with the ESTC translator, the AAS translator will get the full pagination statement and all notes. The "Extra" field doesn't currently work, however (I'd need to spend some more time looking at AAS records to see what, if anything, should go there...).
@@ -20,6 +20,9 @@ Like the ESTC translators, this translator makes a few tweaks to the existing PI
 
 These translators lean very, very heavily on the work of the original developers, Simon Kornblith, Sylvain Machefert, Michael Berkowitz, Ming Yeung Cheung, and Sebastian Karcher. Duplicating the work of the `MARC.js` module for the ESTC translator strikes me as a particularly inelegant kludge, but I take some comfort in seeing that that seems to be more or less the same approach that was used to adapt the Aleph translator to deal with quirks of one library's OPAC using the `MAB2.js` translator.
 
+You will probably also want to be sure to install `ESTC-CSV.js`, as that will allow you to export all of the extra information that the translators are pulling in to .csv for use in other settings.
+
+### Installation
 If you're unfamiliar with GitHub, you can download all the files in this repository as a .zip file using the link at the bottom of the left sidebar. Once you've downloaded and extracted the .zip file, you'll need to place the javascript files for the translator(s) you want to use where your copy of Zotero can find them. 
 
 If you're using Mac OS X, these javascript files need to go in the folder located	 at `/Users/<your-username>/Zotero/translators/`. If you are using Zotero Standalone on Windows 10, the files go in `C:\\Users\<your-username>\Zotero\translators`. (These file paths have changed since I first put these together. They seem to be correct for Zotero 5.)
