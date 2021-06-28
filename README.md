@@ -9,7 +9,7 @@ There are *two* javascript files here, which both need to be added to Zotero's c
 * Separates multiple notes with a pipe character (`' | '`) for easier parsing later.
 
 ### American Antiquarian Society
-Behaves like the English Short Title Catalogue translator, in that it gets the full pagination statement and all notes. The "Extra" field doesn't currently work, however (I'd need to spend some more time looking at AAS records to see what, if anything, should go there...).
+Behaves like the English Short Title Catalogue translator, in that it requires the installtion of `NARC-2.js` as well as the site translator. When both are installed, as with the ESTC translator, the AAS translator will get the full pagination statement and all notes. The "Extra" field doesn't currently work, however (I'd need to spend some more time looking at AAS records to see what, if anything, should go there...).
 
 ### Short-Title Catalogue, Netherlands
 Like the ESTC translators, this translator makes a few tweaks to the existing PICA translator to make the results that Zotero imports more friendly for book historical work:
