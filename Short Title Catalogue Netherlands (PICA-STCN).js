@@ -2,7 +2,7 @@
 	"translatorID": "bdf0aa2b-2209-44a2-ac1f-e079221a08b1",
 	"label": "Short Title Catalogue, Netherlands (PICA-STCN)",
 	"creator": "Sean Takats, Michael Berkowitz, Sylvain Machefert, Sebastian Karcher (with adaptations for STCN by Ben Pauley)",
-	"target": "^https?://picarta\\.nl",
+	"target": "^https?://picarta\\.oclc\\.org/",
 	"minVersion": "3.0",
 	"maxVersion": "",
 	"priority": 100,
