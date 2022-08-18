@@ -6,7 +6,7 @@
 	"minVersion": "1.0.0b3.r1",
 	"maxVersion": "",
 	"priority": 90,
-	"inRepository": true,
+	"inRepository": false,
 	"translatorType": 4,
 	"browserSupport": "gcsb",
 	"lastUpdated": "2014-08-26 03:48:17"
@@ -45,30 +45,33 @@ http://alephdai.ub.hu-berlin.de
 */
 
 function detectWeb(doc, url) {
-	var singleRe = new RegExp("^https?://estc\\.bl\\.uk/F/[A-Z0-9\-]+\?.*(?:func=full-set-set|func=direct|func=myshelf-full.*)");
+	var singleRe = new RegExp("^https?://estc\\.bl\\.uk/F/?[A-Z0-9\\-]*\\?.*(?:func=full-set-set|func=direct|func=myshelf-full.*)");
 	
-	if(singleRe.test(doc.location.href)) {
+	if(singleRe.test(url)) {
 		return "book";
-	} else {
+	} 
+	else 
+	{
 		var tags = doc.getElementsByTagName("a");
-		for(var i=0; i<tags.length; i++) {
+		for(var i = 0; i < tags.length; i++) {
 			if(singleRe.test(tags[i].href)) {
 				return "multiple";
 			}
 		}
 	}
+	return false;
 }
 
 function doWeb(doc, url) {
-	var detailRe = new RegExp("^https?://estc\\.bl\\.uk/F/[A-Z0-9\-]+\?.*(?:func=full-set-set|func=direct|func=myshelf-full|func=myself_full.*)");
-	var mab2Opac = new RegExp("^https?://(?!alephdai)[^/]+berlin|193\.30\.112\.134|duisburg-essen/F/[A-Z0-9\-]+\?.*|^https?://katalog\.ub\.uni-duesseldorf\.de/F/");
+	var detailRe = new RegExp("^https?://estc\\.bl\\.uk/F/?[A-Z0-9\\-]+\\?.*(?:func=full-set-set|func=direct|func=myshelf-full|func=myself_full.*)");
+	var mab2Opac = new RegExp("^https?://(?!alephdai)[^/]+berlin|193\\.30\\.112\\.134|duisburg-essen/F/[A-Z0-9\\-]+\\?.*|^https?://katalog\\.ub\\.uni-duesseldorf\\.de/F|^https?://aleph\\.mpg\\.de/F");
 	var uri = doc.location.href;
-	var newUris = new Array();
+	var newUris = [];
 	
 	if(detailRe.test(uri)) {
 		// find the 'add to basket' link where it will have the document number, replace the function with 'direct'
 		if (doc.evaluate('//*[contains(@href, "myshelf-add-ful-1")]', doc, null, XPathResult.ANY_TYPE, null).iterateNext()) {
-			var elmts_add = doc.evaluate('//*[contains(@href, "myshelf-add-ful-1")]', doc, null, XPathResult.ANY_TYPE, null);
+			var elmtsAdd = doc.evaluate('//*[contains(@href, "myshelf-add-ful-1")]', doc, null, XPathResult.ANY_TYPE, null);
 			var adduri = elmts_add.iterateNext().attributes.getNamedItem("href").value;
 			adduri = adduri.replace("myshelf-add-ful-1", "direct");
 			//adduri = adduri.replace("myshelf-add-ful-1", "myshelf-full");			
@@ -79,15 +82,18 @@ function doWeb(doc, url) {
 			//Zotero.debug('baseuri = ' + baseuri);
 			//Zotero.debug('funcuri = ' + funcuri);
 			Zotero.debug('directuri = ' + newuri);
-		} else {
-			var newuri = uri.replace(/\&format=[0-9]{3}/, "&format=001");
+		} 
+		else {
+			var newuri = uri.replace(/&format=[0-9]{3}/, "&format=001");
 			if (newuri == uri) newuri += "&format=001";
 		}
 		
 		var translator = Zotero.loadTranslator("import");
 		if(mab2Opac.test(uri)) {
+			Z.debug("Using MAB2 translator");
 			translator.setTranslator("91acf493-0de7-4473-8b62-89fd141e6c74");
-		} else {
+		} 
+		else {
 			translator.setTranslator("3cccaeec-c089-4436-9013-994268a94463");	
 		}
 		translator.getTranslatorObject(function (marc2) {
@@ -96,25 +102,22 @@ function doWeb(doc, url) {
 			});
 		});
 		
-	} else {
+	} 
+	else {
 		var itemRegexp = 'https?://estc\\.bl\\.uk/\?.*(?:func=full-set-set.*\&format=999|func=direct|func=myshelf-full.*)'
 		var items = Zotero.Utilities.getItemArray(doc, doc, itemRegexp, '^[0-9]+$');
 		// ugly hack to see if we have any items
-		var haveItems = false;
-		for(var i in items) {
-			haveItems = true;
-			break;
-		}
+		var haveItems = Array.isArray(items) && items.length != 0;
 		
 		// If we don't have any items otherwise, let us use the numbers
 		if(!haveItems) {
 			var items = Zotero.Utilities.getItemArray(doc, doc, itemRegexp);
-			
+
 			// We try to get more text by grabbing the whole table row
 			var newItems = {};
 			for (var link in items) {
 				//Z.debug(link.match(/[A-Z0-9]{20}[A-Z0-9]*-[0-9]+\?func.*$/)[0]);
-				var text = ZU.xpathText(doc, '//a[contains(@href,"'+link.match(/[A-Z0-9]{20}[A-Z0-9]*-[0-9]+\?func.*$/)[0]+'")]/ancestor::tr[1]');
+				var text = ZU.xpathText(doc, '//a[contains(@href,"' + link.match(/[A-Z0-9]{20}[A-Z0-9]*-[0-9]+\?func.*$/)[0]+'")]/ancestor::tr[1]');
 				if (text) {
 					newItems[link]=text;
 					haveItems = true;
@@ -125,21 +128,23 @@ function doWeb(doc, url) {
 		
 		Zotero.selectItems(items, function (items) {
 			if(!items) {
-				return true;
+				return;
 			}
 			
-			for(var i in items) {
+			for( var i in items) {
 				var newUri = i.replace("&format=999", "&format=001");
-				if(newUri == i) {
+				if (newUri == i) {
 					newUri += "&format=001";
 				}
 				newUris.push(newUri);
 			}
 			
 			var translator = Zotero.loadTranslator("import");
-			if(mab2Opac.test(uri)) {
+			if (mab2Opac.test(uri)) {
+				Z.debug("Using MAB2 translator");
 				translator.setTranslator("91acf493-0de7-4473-8b62-89fd141e6c74");
-			} else {
+			} 
+			else {
 				translator.setTranslator("3cccaeec-c089-4436-9013-994268a94463");
 			}	
 			translator.getTranslatorObject(function (marc2) {
@@ -152,12 +157,11 @@ function doWeb(doc, url) {
 }
 
 function scrape(newDoc, marc2, url) {
-		var uri = newDoc.location.href;
-	
-		var nonstandard = false;
+// 		var nonstandard = false;
 		var th = false;
 		var ndl = false;
 		var xpath;
+		// Z.debug(uri)
 		if (newDoc.evaluate('//*[tr[td/text()="LDR"]]/tr[td[2]]', newDoc, null, XPathResult.ANY_TYPE, null).iterateNext()) {
 			xpath = '//*[tr[td/text()="LDR"]]/tr[td[2]]';
 		}	else if (newDoc.evaluate('//tbody[tr/td[@scope="row"]/strong[contains(text(), "LDR")]]', newDoc, null, XPathResult.ANY_TYPE, null).iterateNext()) {
@@ -182,14 +186,16 @@ function scrape(newDoc, marc2, url) {
 		}
  	
 
+// 		Z.debug(xpath)
 		var elmts = newDoc.evaluate(xpath, newDoc, null, XPathResult.ANY_TYPE, null);
 		var elmt;
 		var record = new marc2.record();
-		while(elmt = elmts.iterateNext()) {
+		while ((elmt = elmts.iterateNext())) {
+			var field;
 			if (th) {
-		  var field = Zotero.Utilities.superCleanString(newDoc.evaluate('./th', elmt, null, XPathResult.ANY_TYPE, null).iterateNext().textContent);
+			  field = Zotero.Utilities.superCleanString(newDoc.evaluate('./th', elmt, null, XPathResult.ANY_TYPE, null).iterateNext().textContent);
 	  } else {
-		  var field = Zotero.Utilities.superCleanString(newDoc.evaluate('./td[1]', elmt, null, XPathResult.ANY_TYPE, null).iterateNext().textContent);
+			  field = Zotero.Utilities.superCleanString(newDoc.evaluate('./td[1]', elmt, null, XPathResult.ANY_TYPE, null).iterateNext().textContent);
 	  }
 	  // if (nonstandard) {
 	  //     var field = Zotero.Utilities.superCleanString(newDoc.evaluate('./td[1]', elmt, null, XPathResult.ANY_TYPE, null).iterateNext().textContent);
@@ -198,27 +204,29 @@ function scrape(newDoc, marc2, url) {
 	  // }
 	 // var field = Zotero.Utilities.superCleanString(newDoc.evaluate('./td[1]', elmt, null, XPathResult.ANY_TYPE, null).iterateNext().textContent);
 			if(field) {
-				Z.debug(field)
 				var value;
 				if (th) {
 					value = newDoc.evaluate('./TD[1]', elmt, null, XPathResult.ANY_TYPE, null).iterateNext().textContent; //.split(/\n/)[1];
-				} else if (ndl){
+				} 
+				else if (ndl){
 						value = newDoc.evaluate('./TD[3]', elmt, null, XPathResult.ANY_TYPE, null).iterateNext().textContent;
-				} else {
+				} 
+				else {
 				  value = newDoc.evaluate('./TD[2]', elmt, null, XPathResult.ANY_TYPE, null).iterateNext().textContent; //.split(/\n/)[1];
 				}
 				if (value.split(/\n/)[1]) value = Zotero.Utilities.trimInternal(value.split(/\n/)[1]);
 				Zotero.debug(field + " : " + value);
 				if(field == "LDR") {
 					record.leader = value;
-				} else if(field != "FMT") {
+				} 
+				else if(field != "FMT") {
 					value = value.replace(/\|([a-z]) /g, marc2.subfieldDelimiter+"$1");
 				
 					var code = field.substring(0, 3);
 					var ind = "";
-					if(field.length > 3) {
+					if (field.length > 3) {
 						ind = field[3];
-						if(field.length > 4) {
+						if (field.length > 4) {
 							ind += field[4];
 						}
 					}
@@ -234,21 +242,22 @@ function scrape(newDoc, marc2, url) {
 		newItem.repository = domain[1]+" Library Catalog";
 
 		for (var i in newItem.creators) {
-			if (!newItem.creators[i]['firstName']) {
-				var name = newItem.creators[i]['lastName'].split(/([^\s]+)\s+(.*)$/);
-				newItem.creators[i] = {lastName:name[1], firstName:name[2], creatorType:'author'};
+			if (!newItem.creators[i].firstName) {
+				var name = newItem.creators[i].lastName.split(/([^\s]+)\s+(.*)$/);
+				newItem.creators[i] = { lastName:name[1], firstName: name[2], creatorType: 'author'};
 			}
 		}
 		
 		var oldCreators = newItem.creators;
-		newItem.creators = new Array();
-		var transient = new Array();
-		for each (var a in oldCreators) {
+		newItem.creators = [];
+		var transient = [];
+		for (i = 0; i < oldCreators.length; i ++) {
+			var a = oldCreators[i];
 			if (a.lastName) {
 				if (!a.lastName.match(/\d+/)) transient.push(a);
 			}
 		}
-		for each (var a in transient) {
+		for (i = 0; i < transient.length; i++) {
 			if (a.firstName) {
 				if (a.firstName.match(/\|/)) a.firstName = a.firstName.match(/([^|]+)\s+|/)[1];
 			}
